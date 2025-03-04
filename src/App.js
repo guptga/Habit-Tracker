@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
+import Calendar from "react-calendar";
 import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale } from "chart.js";
-import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import "./index.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale);
 
 function App() {
+  // ✅ Load habits from Local Storage
   const [habits, setHabits] = useState(() => {
     try {
       const savedHabits = localStorage.getItem("habits");
@@ -18,10 +20,8 @@ function App() {
   });
 
   const [newHabit, setNewHabit] = useState("");
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
-  });
 
+  // ✅ Save habits to Local Storage
   useEffect(() => {
     try {
       localStorage.setItem("habits", JSON.stringify(habits));
@@ -30,137 +30,88 @@ function App() {
     }
   }, [habits]);
 
-  useEffect(() => {
-    localStorage.setItem("darkMode", darkMode);
-  }, [darkMode]);
-
-  useEffect(() => {
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  useEffect(() => {
-    const now = new Date();
-    const timeTo8PM = new Date();
-    timeTo8PM.setHours(20, 0, 0, 0);
-
-    const delay = timeTo8PM - now;
-    if (delay > 0) {
-      setTimeout(() => {
-        const uncompleted = habits.filter(habit => !habit.completed);
-        if (uncompleted.length > 0 && Notification.permission === "granted") {
-          new Notification("⏰ Habit Reminder!", {
-            body: `You have ${uncompleted.length} incomplete habits today!`,
-          });
-        }
-      }, delay);
-    }
-  }, [habits]);
-
+  // ✅ Add Habit
   const addHabit = () => {
     if (newHabit.trim() !== "") {
-      setHabits([...habits, { text: newHabit, completed: false, streak: 0 }]);
+      setHabits([...habits, { text: newHabit, completed: false, streak: 0, completedDate: null }]);
       setNewHabit("");
     }
   };
 
+  // ✅ Toggle Completion
   const toggleCompletion = (index) => {
-    const updatedHabits = habits.map((habit, i) => {
-      if (i === index) {
-        return { 
-          ...habit, 
-          completed: !habit.completed,
-          streak: habit.completed ? 0 : habit.streak + 1,
-          completedDate: !habit.completed ? new Date().toISOString() : null
-        };
-      }
-      return habit;
-    });
-    setHabits(updatedHabits);
+    setHabits((prevHabits) =>
+      prevHabits.map((habit, i) =>
+        i === index
+          ? {
+              ...habit,
+              completed: !habit.completed,
+              streak: habit.completed ? 0 : habit.streak + 1,
+              completedDate: habit.completed ? null : new Date(),
+            }
+          : habit
+      )
+    );
   };
 
+  // ✅ Delete Habit
   const deleteHabit = (index) => {
-    const updatedHabits = habits.filter((_, i) => i !== index);
-    setHabits(updatedHabits);
-  };
-
-  const completedHabits = habits.filter(habit => habit.completed).length;
-  const totalHabits = habits.length;
-  const progressPercentage = totalHabits > 0 ? (completedHabits / totalHabits) * 100 : 0;
-
-  const exportData = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(habits));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "habits.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    document.body.removeChild(downloadAnchor);
-  };
-
-  const importData = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedHabits = JSON.parse(e.target.result);
-        setHabits(importedHabits);
-      } catch (error) {
-        console.error("Invalid file format", error);
-      }
-    };
-    reader.readAsText(file);
+    setHabits(habits.filter((_, i) => i !== index));
   };
 
   return (
-    <div className={`container ${darkMode ? "dark-mode" : ""}`}>
+    <div className="container">
       <h1 className="title">Habit Tracker</h1>
 
-      <button onClick={() => setDarkMode(!darkMode)} className="dark-mode-btn">
-        {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-      </button>
+      {/* ✅ Progress Chart */}
+      <h2>🔥 Habit Streaks</h2>
+      <Bar
+        data={{
+          labels: habits.map(habit => habit.text),
+          datasets: [
+            {
+              label: "🔥 Streak Days",
+              data: habits.map(habit => habit.streak),
+              backgroundColor: "orange",
+            },
+          ],
+        }}
+        options={{ responsive: true }}
+      />
 
-      <div className="progress-container">
-        <div className="progress-bar" style={{ width: `${progressPercentage}%` }}>
-          {Math.round(progressPercentage)}%
-        </div>
-      </div>
+      {/* ✅ Habit List */}
+      <ul className="habit-list">
+        {habits.map((habit, index) => (
+          <li key={index} className="habit-item">
+            <input
+              type="checkbox"
+              checked={habit.completed}
+              onChange={() => toggleCompletion(index)}
+            />
+            <span className={habit.completed ? "completed" : ""}>{habit.text}</span>
+            <span className="streak">🔥 {habit.streak} days</span>
+            <button onClick={() => deleteHabit(index)}>❌</button>
+          </li>
+        ))}
+      </ul>
 
-      {/* ✅ Calendar for Completed Habits */}
+      {/* ✅ Calendar */}
       <Calendar
         tileContent={({ date }) => {
-          return habits.some(habit => habit.completed && 
-            habit.completedDate &&
-            new Date(habit.completedDate).toDateString() === date.toDateString()) 
-            ? "✅" 
+          return habits.some(habit => habit.completedDate && new Date(habit.completedDate).toDateString() === date.toDateString())
+            ? "✅"
             : null;
         }}
       />
 
-      <div className="input-container">
-        <input
-          type="text"
-          placeholder="Add a new habit"
-          value={newHabit}
-          onChange={(e) => setNewHabit(e.target.value)}
-          className="input-box"
-        />
-        <button onClick={addHabit} className="add-btn">Add</button>
-      </div>
-
-      <ul className="habit-list">
-        {habits.map((habit, index) => (
-          <li key={index} className="habit-item">
-            <input type="checkbox" checked={habit.completed} onChange={() => toggleCompletion(index)} className="checkbox" />
-            <span className={habit.completed ? "completed" : ""}>{habit.text}</span>
-            <span className="streak">🔥 {habit.streak} days</span>
-            <button onClick={() => deleteHabit(index)} className="delete-btn">❌</button>
-          </li>
-        ))}
-      </ul>
+      {/* ✅ Habit Input */}
+      <input
+        type="text"
+        placeholder="Add a new habit"
+        value={newHabit}
+        onChange={(e) => setNewHabit(e.target.value)}
+      />
+      <button onClick={addHabit}>Add</button>
     </div>
   );
 }
