@@ -1,0 +1,157 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  width: 400px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.input-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.input-box {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.add-btn {
+  background: #007BFF;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-btn:hover {
+  background: #0056b3;
+}
+
+.habit-list {
+  list-style: none;
+  padding: 0;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.checkbox {
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: darkred;
+}
+
+/* ✅ Progress Bar */
+.progress-container {
+  width: 100%;
+  background-color: #ddd;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 20px;
+  background-color: #4CAF50;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out;
+}
+.dark-mode {
+  background-color: #222;
+  color: white;
+}
+
+.dark-mode-btn {
+  margin-bottom: 10px;
+  padding: 8px;
+  cursor: pointer;
+  border: none;
+  background: #555;
+  color: white;
+  border-radius: 5px;
+}
+
+.dark-mode-btn:hover {
+  background: #777;
+}
+
+.export-btn, .import-btn {
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.export-btn {
+  background: #28a745;
+  color: white;
+}
+
+.export-btn:hover {
+  background: #218838;
+}
+
+.import-btn {
+  background: #007BFF;
+  color: white;
+}
+
+.import-btn:hover {
+  background: #0056b3;
+}
+@media (max-width: 600px) {
+  .container {
+    width: 90%;
+  }
+  .input-container {
+    flex-direction: column;
+  }
+  .add-btn {
+    width: 100%;
+  }
+}
